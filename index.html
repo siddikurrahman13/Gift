@@ -1,0 +1,551 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090D18">
+  <meta name="description" content="A quiet little space to mark the days that pass.">
+  <title>The Silence Calendar ✦</title>
+
+  <style>
+    :root {
+      --bg: #090d18;
+      --panel: rgba(23, 29, 46, .78);
+      --line: rgba(221, 204, 247, .13);
+      --text: #f4f0fa;
+      --muted: #a5a6bb;
+      --rose: #e9b6cf;
+      --gold: #e5cba0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 50% 0%, #252039 0%, transparent 48%),
+        linear-gradient(160deg, #090d18, #111321 60%, #090d18);
+      font-family: Georgia, "Times New Roman", serif;
+      overflow-x: hidden;
+    }
+
+    #stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: #e8d9ff;
+      animation: twinkle var(--duration) ease-in-out infinite alternate;
+    }
+
+    @keyframes twinkle {
+      from { opacity: .15; transform: scale(.7); }
+      to { opacity: .85; transform: scale(1.3); }
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 30px, 540px);
+      margin: 0 auto;
+      padding: 45px 0 35px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      color: var(--gold);
+      font: 10px/1.8 Arial, sans-serif;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 15px 0 12px;
+      font-size: clamp(35px, 9vw, 52px);
+      line-height: 1.12;
+      font-weight: 400;
+      letter-spacing: -1.8px;
+    }
+
+    .intro {
+      max-width: 330px;
+      margin: 0 auto;
+      color: #b5b2c7;
+      font-size: 15px;
+      line-height: 1.9;
+      font-style: italic;
+    }
+
+    .ornament {
+      margin: 27px 0;
+      color: var(--rose);
+      font-size: 18px;
+      letter-spacing: 10px;
+    }
+
+    .glass {
+      padding: 27px 20px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: 0 18px 65px #00000025,
+                  inset 0 1px #ffffff08;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .label {
+      color: var(--muted);
+      font: 10px Arial, sans-serif;
+      letter-spacing: 3px;
+    }
+
+    .counter {
+      display: flex;
+      justify-content: center;
+      align-items: baseline;
+      gap: 12px;
+      margin: 15px 0 9px;
+    }
+
+    #days {
+      color: var(--rose);
+      font-size: clamp(72px, 19vw, 100px);
+      line-height: 1;
+      font-weight: 400;
+      letter-spacing: -5px;
+      text-shadow: 0 0 45px #e9b6cf20;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .day-word {
+      color: #d6cede;
+      font-size: 15px;
+    }
+
+    #dateText {
+      color: var(--muted);
+      font: 12px/1.8 Arial, sans-serif;
+    }
+
+    .divider {
+      height: 1px;
+      margin: 24px 0;
+      background: linear-gradient(90deg, transparent, var(--line), transparent);
+    }
+
+    .quote {
+      margin: 0;
+      color: #e6d9ed;
+      font-size: 20px;
+      font-style: italic;
+      line-height: 1.7;
+    }
+
+    .quote-sub {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font: 11px/1.8 Arial, sans-serif;
+      letter-spacing: .5px;
+    }
+
+    .calendar-card {
+      margin-top: 17px;
+      padding: 22px 15px;
+    }
+
+    .calendar-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    #monthTitle {
+      font-size: 20px;
+      font-weight: 400;
+    }
+
+    .month-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: #ffffff05;
+      color: var(--text);
+      font-size: 19px;
+      cursor: pointer;
+    }
+
+    .weekdays, #calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 7px 3px;
+    }
+
+    .weekdays {
+      margin-bottom: 12px;
+      color: #9293aa;
+      font: 10px Arial, sans-serif;
+    }
+
+    .date-cell {
+      position: relative;
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1;
+      min-width: 0;
+      border-radius: 50%;
+      color: #ddd8e8;
+      font: 12px Arial, sans-serif;
+    }
+
+    .date-cell.empty { visibility: hidden; }
+
+    .date-cell.past {
+      background: #dcb8e10d;
+    }
+
+    .date-cell.past::after {
+      content: "";
+      position: absolute;
+      bottom: 5px;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--rose);
+      box-shadow: 0 0 6px #e9b6cf80;
+    }
+
+    .date-cell.start {
+      border: 1px solid var(--gold);
+      color: var(--gold);
+    }
+
+    .date-cell.today {
+      background: var(--rose);
+      color: #17101d;
+      box-shadow: 0 0 20px #e9b6cf35;
+    }
+
+    .date-cell.today::after { background: #17101d; }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 21px;
+      color: var(--muted);
+      font: 10px Arial, sans-serif;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .key {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--rose);
+    }
+
+    .key.gold { background: var(--gold); }
+    .key.white { background: #f3edf9; }
+
+    .footer {
+      padding-top: 29px;
+      color: #85859b;
+      font: 10px/2 Arial, sans-serif;
+      letter-spacing: 1px;
+    }
+
+    .footer span {
+      color: var(--rose);
+      font-size: 14px;
+    }
+
+    .error {
+      color: #ffb5c4;
+      font: 13px/1.8 Arial, sans-serif;
+    }
+
+    @media (max-width: 360px) {
+      .page { width: calc(100% - 22px); padding-top: 30px; }
+      .glass { padding: 22px 12px; }
+      .calendar-card { padding: 18px 9px; }
+      .weekdays, #calendar { gap: 6px 1px; }
+      .date-cell { font-size: 11px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="stars" aria-hidden="true"></div>
+
+  <main class="page">
+    <header>
+      <div class="eyebrow">A quiet little space</div>
+      <h1>The Silence<br>Calendar</h1>
+      <p class="intro">
+        Some days pass quietly.<br>
+        Some moments stay with us.
+      </p>
+      <div class="ornament" aria-hidden="true">✦ · ✧ · ✦</div>
+    </header>
+
+    <section class="glass" aria-label="Days elapsed">
+      <div class="label">DAYS APART</div>
+
+      <div class="counter">
+        <span id="days">—</span>
+        <span class="day-word">days</span>
+      </div>
+
+      <div id="dateText" aria-live="polite">A little time, passing quietly.</div>
+
+      <div class="divider"></div>
+
+      <p class="quote">“Time passed, quietly.”</p>
+      <p class="quote-sub">Every day, another page of time.</p>
+    </section>
+
+    <section class="glass calendar-card" aria-label="Calendar">
+      <div class="calendar-head">
+        <button class="month-btn" id="prevMonth"
+          aria-label="Previous month">‹</button>
+        <div id="monthTitle">Calendar</div>
+        <button class="month-btn" id="nextMonth"
+          aria-label="Next month">›</button>
+      </div>
+
+      <div class="weekdays" aria-hidden="true">
+        <span>SU</span><span>MO</span><span>TU</span>
+        <span>WE</span><span>TH</span><span>FR</span><span>SA</span>
+      </div>
+
+      <div id="calendar" aria-label="Days calendar"></div>
+
+      <div class="legend">
+        <span><i class="key"></i> Days passed</span>
+        <span><i class="key gold"></i> Start</span>
+        <span><i class="key white"></i> Today</span>
+      </div>
+    </section>
+
+    <footer class="footer">
+      MADE OF TIME, NOT WORDS<br>
+      <span>✧</span>
+    </footer>
+  </main>
+
+  <script>
+    // IMPORTANT: Replace this with your actual start date.
+    // Format: YYYY-MM-DD
+    const START_DATE = "2026-10-22";
+
+    const $ = id => document.getElementById(id);
+
+    // Use local calendar dates to avoid UTC/time-zone off-by-one errors.
+    function parseDate(value) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+      if (!match) return null;
+
+      const date = new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3])
+      );
+
+      if (
+        date.getFullYear() !== Number(match[1]) ||
+        date.getMonth() !== Number(match[2]) - 1 ||
+        date.getDate() !== Number(match[3])
+      ) return null;
+
+      return date;
+    }
+
+    function dayNumber(date) {
+      return Date.UTC(
+        date.getFullYear(), date.getMonth(), date.getDate()
+      ) / 86400000;
+    }
+
+    const startDate = parseDate(START_DATE);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let shownYear = today.getFullYear();
+    let shownMonth = today.getMonth();
+
+    function formatDate(date) {
+      return date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+    }
+
+    function renderCounter() {
+      if (!startDate) {
+        $("days").textContent = "!";
+        $("dateText").innerHTML =
+          '<span class="error">Please set a valid START_DATE in the code.</span>';
+        return;
+      }
+
+      if (startDate > today) {
+        $("days").textContent = "—";
+        $("dateText").textContent =
+          "The selected start date is in the future.";
+        return;
+      }
+
+      // Elapsed days: the start date itself is day 0.
+      const elapsed = dayNumber(today) - dayNumber(startDate);
+      $("days").textContent = elapsed.toLocaleString("en-US");
+      $("dateText").textContent =
+        "Since " + formatDate(startDate) + " · Day " + elapsed;
+    }
+
+    function renderCalendar() {
+      const firstDay = new Date(shownYear, shownMonth, 1);
+      const totalDays = new Date(
+        shownYear, shownMonth + 1, 0
+      ).getDate();
+
+      $("monthTitle").textContent = firstDay.toLocaleDateString(
+        "en-US", { month: "long", year: "numeric" }
+      );
+
+      const grid = $("calendar");
+      grid.innerHTML = "";
+
+      for (let i = 0; i < firstDay.getDay(); i++) {
+        const blank = document.createElement("div");
+        blank.className = "date-cell empty";
+        grid.appendChild(blank);
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const date = new Date(shownYear, shownMonth, day);
+        date.setHours(0, 0, 0, 0);
+
+        const cell = document.createElement("div");
+        cell.className = "date-cell";
+        cell.textContent = day;
+
+        const isPastOrToday = date <= today;
+        const isStart = startDate &&
+          date.getTime() === startDate.getTime();
+        const isToday = date.getTime() === today.getTime();
+
+        if (startDate && date >= startDate && isPastOrToday) {
+          cell.classList.add("past");
+        }
+
+        if (isStart) cell.classList.add("start");
+        if (isToday) cell.classList.add("today");
+
+        cell.setAttribute("aria-label",
+          formatDate(date) +
+          (isStart ? ", start date" : "") +
+          (isToday ? ", today" : "")
+        );
+
+        grid.appendChild(cell);
+      }
+    }
+
+    function moveMonth(amount) {
+      const next = new Date(
+        shownYear, shownMonth + amount, 1
+      );
+
+      // Do not browse into future months.
+      const maxMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      if (next > maxMonth) return;
+
+      shownYear = next.getFullYear();
+      shownMonth = next.getMonth();
+      renderCalendar();
+    }
+
+    $("prevMonth").addEventListener("click", () => moveMonth(-1));
+    $("nextMonth").addEventListener("click", () => moveMonth(1));
+
+    // Tiny decorative stars, generated without external libraries.
+    const starField = $("stars");
+
+    for (let i = 0; i < 65; i++) {
+      const star = document.createElement("i");
+      star.className = "star";
+      star.style.left = (Math.random() * 100) + "%";
+      star.style.top = (Math.random() * 100) + "%";
+      star.style.width = (Math.random() * 2 + 1) + "px";
+      star.style.height = star.style.width;
+      star.style.setProperty(
+        "--duration", (2 + Math.random() * 4) + "s"
+      );
+      star.style.animationDelay = (Math.random() * 4) + "s";
+      starField.appendChild(star);
+    }
+
+    renderCounter();
+    renderCalendar();
+
+    // Refresh the day count after local midnight if the page stays open.
+    function scheduleMidnightRefresh() {
+      const now = new Date();
+      const nextMidnight = new Date(
+        now.getFullYear(), now.getMonth(), now.getDate() + 1
+      );
+
+      setTimeout(() => {
+        const newToday = new Date();
+        newToday.setHours(0, 0, 0, 0);
+
+        // Refresh date state and calendar at the next local midnight.
+        today.setTime(newToday.getTime());
+
+        renderCounter();
+
+        // If viewing a month that has now become a future month,
+        // return to the current month.
+        if (shownYear > today.getFullYear() ||
+            (shownYear === today.getFullYear() &&
+             shownMonth > today.getMonth())) {
+          shownYear = today.getFullYear();
+          shownMonth = today.getMonth();
+        }
+
+        renderCalendar();
+        scheduleMidnightRefresh();
+      }, Math.max(1000, nextMidnight.getTime() - now.getTime() + 100));
+    }
+
+    scheduleMidnightRefresh();
+  </script>
+</body>
+</html>
